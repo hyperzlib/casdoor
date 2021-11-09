@@ -26,6 +26,8 @@ func GetCredManager(passwordType string) CredManager {
 		return NewSha256SaltCredManager()
 	} else if passwordType == "md5-salt" {
 		return NewMd5UserSaltCredManager()
+	} else if passwordType == "bookstack-salt" {
+		return NewBookstackSaltCredManager()
 	}
 
 	return nil

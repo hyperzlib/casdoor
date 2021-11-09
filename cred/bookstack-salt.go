@@ -1,11 +1,17 @@
 package cred
 
 import (
+	"crypto/md5"
+	"crypto/rand"
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/base64"
 	"encoding/hex"
+	"io"
 	"strconv"
 	"strings"
+
+	mt "math/rand"
 )
 
 const (
@@ -15,7 +21,7 @@ const (
 	saltLocalSecret    = "ahfw*&TGdsfnbi*^Wt"
 )
 
-type BookstackSaltCredManager struct {}
+type BookstackSaltCredManager struct{}
 
 func NewBookstackSaltCredManager() *BookstackSaltCredManager {
 	cm := &BookstackSaltCredManager{}
@@ -63,6 +69,51 @@ func getBookstackHexDigest(pass string, saltSecret string, salt string, interati
 	hashPass = hex.EncodeToString(hashOutput.Sum(nil))
 
 	return hashPass, nil
+}
+
+func salt(secret string) (string, error) {
+
+	buf := make([]byte, saltSize, saltSize+md5.Size)
+	_, err := io.ReadFull(rand.Reader, buf)
+	if err != nil {
+		return "", err
+	}
+
+	hash := md5.New()
+	hash.Write(buf)
+	hash.Write([]byte(secret))
+	return hex.EncodeToString(hash.Sum(buf)), nil
+}
+
+func saltSecret() (string, error) {
+	rb := make([]byte, randInt(10, 100))
+	_, err := rand.Read(rb)
+	if err != nil {
+		return "", err
+	}
+
+	return base64.URLEncoding.EncodeToString(rb), nil
+}
+
+func randInt(min int, max int) int {
+	return min + mt.Intn(max-min)
+}
+
+func (cm *BookstackSaltCredManager) GenerateUserSalt() string {
+	saltSecret, err := saltSecret()
+	if err != nil {
+		return ""
+	}
+
+	salt, err := salt(saltLocalSecret + saltSecret)
+	if err != nil {
+		return ""
+	}
+
+	interation := randInt(1, 20)
+	interationStr := strconv.Itoa(interation)
+
+	return saltSecret + delimiter + interationStr + delimiter + salt
 }
 
 func (cm *BookstackSaltCredManager) GetSealedPassword(password string, userSalt string, organizationSalt string) string {
