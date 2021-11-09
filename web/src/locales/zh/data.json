@@ -315,20 +315,6 @@
     "Homepage - Tooltip": "个人主页链接",
     "Input your email": "请输入邮箱",
     "Input your phone number": "输入手机号",
-<<<<<<< Updated upstream
-    "Is admin": "是管理员",
-    "Is admin - Tooltip": "是应用程序管理员",
-    "Is deleted": "被删除",
-    "Is deleted - Tooltip": "账户是否已被删除",
-    "Is forbidden": "被禁用",
-    "Is forbidden - Tooltip": "账户是否已被禁用",
-    "Is global admin": "是全局管理员",
-    "Is global admin - Tooltip": "是应用程序管理员",
-    "Link": "绑定",
-    "Location": "地址",
-    "Location - Tooltip": "地址",
-    "Modify password...": "修改密码...",
-=======
     "Is admin": "管理员",
     "Is admin - Tooltip": "此用户是应用程序管理员",
     "Is deleted": "删除",
@@ -341,7 +327,6 @@
     "Location": "地址",
     "Location - Tooltip": "地址",
     "Modify password...": "修改密码",
->>>>>>> Stashed changes
     "New Password": "新密码",
     "OK": "确定",
     "Old Password": "旧密码",
@@ -349,22 +334,11 @@
     "Password Set": "密码已设置",
     "Properties": "属性",
     "Re-enter New": "重复新密码",
-<<<<<<< Updated upstream
-    "Reset Email...": "重置邮箱...",
-    "Reset Phone...": "重置手机号...",
-    "Select a photo...": "选择图片...",
-=======
-<<<<<<< Updated upstream
-    "Reset Email...": "重新邮箱",
-    "Reset Phone...": "更新手机号",
-=======
     "Reset Email...": "更新邮箱",
     "New email": "新邮箱",
     "Reset Phone...": "更新手机号",
     "New phone": "新手机号",
->>>>>>> Stashed changes
     "Select a photo...": "选择图片",
->>>>>>> Stashed changes
     "Set Password": "设置密码",
     "Set new profile picture": "设置新头像",
     "Set password...": "设置密码",
