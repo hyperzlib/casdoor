@@ -68,13 +68,24 @@ func GetUserByFields(organization string, field string) *User {
 }
 
 func SetUserField(user *User, field string, value string) bool {
+	var (
+		affected int64
+		err      error
+	)
+
 	if field == "password" {
 		organization := GetOrganizationByUser(user)
 		user.UpdateUserPassword(organization)
 		value = user.Password
+
+		affected, err = adapter.Engine.Table(user).ID(core.PK{user.Owner, user.Name}).Update(map[string]interface{}{
+			"password":      user.Password,
+			"password_salt": user.PasswordSalt,
+		})
+	} else {
+		affected, err = adapter.Engine.Table(user).ID(core.PK{user.Owner, user.Name}).Update(map[string]interface{}{field: value})
 	}
 
-	affected, err := adapter.Engine.Table(user).ID(core.PK{user.Owner, user.Name}).Update(map[string]interface{}{field: value})
 	if err != nil {
 		panic(err)
 	}

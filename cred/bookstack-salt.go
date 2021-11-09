@@ -33,7 +33,7 @@ func trimBookstackSalt(salt string) map[string]string {
 	return map[string]string{
 		"salt_secret":       str[0],
 		"interation_string": str[1],
-		"salt":              str[3],
+		"salt":              str[2],
 	}
 }
 
