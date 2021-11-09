@@ -37,13 +37,17 @@ func generateJwtToken(application *Application, user *User) (string, error) {
 	nowTime := time.Now()
 	expireTime := nowTime.Add(time.Duration(application.ExpireInHours) * time.Hour)
 
-	user.Password = ""
+	// 过滤信息
+	retUser := new(User)
+	retUser.Id = user.Id
+	retUser.Owner = user.Owner
+	retUser.Name = user.Name
 
 	claims := Claims{
-		User: *user,
+		User: *retUser,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "Casdoor",
-			Subject:   user.Id,
+			Subject:   retUser.Id,
 			Audience:  []string{application.ClientId},
 			ExpiresAt: jwt.NewNumericDate(expireTime),
 			NotBefore: jwt.NewNumericDate(nowTime),
