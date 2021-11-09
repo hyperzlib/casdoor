@@ -226,6 +226,7 @@ class UserEditPage extends React.Component {
             { this.state.user.id === this.props.account?.id ? (<ResetModal org={this.state.application?.organizationObj} buttonText={i18next.t("user:Reset Phone...")} destType={"phone"} coolDownTime={60}/>) : null}
           </Col>
         </Row>
+        {/*
         <Row style={{marginTop: '20px'}} >
           <Col style={{marginTop: '5px'}} span={(Setting.isMobile()) ? 22 : 2}>
             {Setting.getLabel(i18next.t("user:Country/Region"), i18next.t("user:Country/Region - Tooltip"))} :
@@ -270,7 +271,7 @@ class UserEditPage extends React.Component {
               this.updateUserField('homepage', e.target.value);
             }} />
           </Col>
-        </Row>
+        </Row>*/}
         <Row style={{marginTop: '20px'}} >
           <Col style={{marginTop: '5px'}} span={(Setting.isMobile()) ? 22 : 2}>
             {Setting.getLabel(i18next.t("user:Bio"), i18next.t("user:Bio - Tooltip"))} :
@@ -281,6 +282,7 @@ class UserEditPage extends React.Component {
             }} />
           </Col>
         </Row>
+        {/*
         <Row style={{marginTop: '20px'}} >
           <Col style={{marginTop: '5px'}} span={(Setting.isMobile()) ? 22 : 2}>
             {Setting.getLabel(i18next.t("user:Tag"), i18next.t("user:Tag - Tooltip"))} :
@@ -291,6 +293,7 @@ class UserEditPage extends React.Component {
             }} />
           </Col>
         </Row>
+        */}
         {
           !this.isSelfOrAdmin() ? null : (
             <Row style={{marginTop: '20px'}} >

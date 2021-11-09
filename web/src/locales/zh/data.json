@@ -67,7 +67,7 @@
     "Delete": "删除",
     "Description": "描述信息",
     "Description - Tooltip": "与此有关的描述信息",
-    "Display name": "显示名称",
+    "Display name": "昵称",
     "Display name - Tooltip": "可重复的、仅作展示用途的ID",
     "Down": "下移",
     "Edit": "修改",
@@ -260,7 +260,7 @@
   "signup": {
     "Accept": "阅读并接受",
     "Confirm": "确认密码",
-    "Decline": "Decline",
+    "Decline": "拒绝",
     "Have account?": "已有账号？",
     "Please accept the agreement!": "请先同意使用协议！",
     "Please click the below button to sign in": "请点击下方按钮登录",
@@ -268,7 +268,7 @@
     "Please input your Email!": "请输入您的电子邮箱！",
     "Please input your address!": "请输入您的地址！",
     "Please input your affiliation!": "请输入您所在的工作单位！",
-    "Please input your display name!": "请输入您的显示名称！",
+    "Please input your display name!": "请输入您的昵称！",
     "Please input your personal name!": "请输入您的姓名！",
     "Please input your phone number!": "请输入您的手机号码！",
     "Please select your country/region!": "请选择您的国家/地区",
@@ -280,7 +280,16 @@
     "Username - Tooltip": "用户名",
     "Your account has been created!": "您的账号已创建！",
     "Your confirmed password is inconsistent with the password!": "您两次输入的密码不一致！",
-    "sign in now": "立即登录"
+    "sign in now": "立即登录",
+    "Validate mode": "验证类型",
+    "Phone Validation": "验证手机",
+    "Email Validation": "验证邮箱",
+    "Email: Code has not been sent yet!": "电子邮箱验证码未发送",
+    "Email: You should verify your code in 10 min!": "电子邮箱验证码已超过10分钟",
+    "Email: Wrong code!": "电子邮箱验证码错误",
+    "Phone: Code has not been sent yet!": "短信验证码未发送",
+    "Phone: You should verify your code in 10 min!": "短信验证码已超过10分钟",
+    "Phone: Wrong code!": "短信验证码错误"
   },
   "token": {
     "Edit Token": "Edit Token",
@@ -306,6 +315,7 @@
     "Homepage - Tooltip": "个人主页链接",
     "Input your email": "请输入邮箱",
     "Input your phone number": "输入手机号",
+<<<<<<< Updated upstream
     "Is admin": "是管理员",
     "Is admin - Tooltip": "是应用程序管理员",
     "Is deleted": "被删除",
@@ -318,6 +328,20 @@
     "Location": "地址",
     "Location - Tooltip": "地址",
     "Modify password...": "修改密码...",
+=======
+    "Is admin": "管理员",
+    "Is admin - Tooltip": "此用户是应用程序管理员",
+    "Is deleted": "删除",
+    "Is deleted - Tooltip": "账户是否已被删除",
+    "Is forbidden": "封禁",
+    "Is forbidden - Tooltip": "账户是否已被封禁",
+    "Is global admin": "全局管理员",
+    "Is global admin - Tooltip": "此用户是全局管理员",
+    "Link": "绑定",
+    "Location": "地址",
+    "Location - Tooltip": "地址",
+    "Modify password...": "修改密码",
+>>>>>>> Stashed changes
     "New Password": "新密码",
     "OK": "确定",
     "Old Password": "旧密码",
@@ -325,12 +349,25 @@
     "Password Set": "密码已设置",
     "Properties": "属性",
     "Re-enter New": "重复新密码",
+<<<<<<< Updated upstream
     "Reset Email...": "重置邮箱...",
     "Reset Phone...": "重置手机号...",
     "Select a photo...": "选择图片...",
+=======
+<<<<<<< Updated upstream
+    "Reset Email...": "重新邮箱",
+    "Reset Phone...": "更新手机号",
+=======
+    "Reset Email...": "更新邮箱",
+    "New email": "新邮箱",
+    "Reset Phone...": "更新手机号",
+    "New phone": "新手机号",
+>>>>>>> Stashed changes
+    "Select a photo...": "选择图片",
+>>>>>>> Stashed changes
     "Set Password": "设置密码",
     "Set new profile picture": "设置新头像",
-    "Set password...": "设置密码...",
+    "Set password...": "设置密码",
     "Tag": "标签",
     "Tag - Tooltip": "唯一的、字符串式的ID",
     "Title": "Title",
