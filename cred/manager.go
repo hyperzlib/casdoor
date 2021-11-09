@@ -15,6 +15,7 @@
 package cred
 
 type CredManager interface {
+	GenerateUserSalt() string
 	GetSealedPassword(password string, userSalt string, organizationSalt string) string
 }
 

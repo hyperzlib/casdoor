@@ -21,6 +21,10 @@ func NewPlainCredManager() *PlainCredManager {
 	return cm
 }
 
+func (cm *PlainCredManager) GenerateUserSalt() string {
+	return ""
+}
+
 func (cm *PlainCredManager) GetSealedPassword(password string, userSalt string, organizationSalt string) string {
 	return password
 }

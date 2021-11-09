@@ -17,6 +17,7 @@ package cred
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"github.com/thanhpk/randstr"
 )
 
 type Sha256SaltCredManager struct{}
@@ -35,6 +36,10 @@ func getSha256HexDigest(s string) string {
 func NewSha256SaltCredManager() *Sha256SaltCredManager {
 	cm := &Sha256SaltCredManager{}
 	return cm
+}
+
+func (cm *Sha256SaltCredManager) GenerateUserSalt() string {
+	return randstr.Hex(10)
 }
 
 func (cm *Sha256SaltCredManager) GetSealedPassword(password string, userSalt string, organizationSalt string) string {

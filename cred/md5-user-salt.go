@@ -17,6 +17,7 @@ package cred
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"github.com/thanhpk/randstr"
 )
 
 type Md5UserSaltCredManager struct{}
@@ -35,6 +36,10 @@ func getMd5HexDigest(s string) string {
 func NewMd5UserSaltCredManager() *Sha256SaltCredManager {
 	cm := &Sha256SaltCredManager{}
 	return cm
+}
+
+func (cm *Md5UserSaltCredManager) GenerateUserSalt() string {
+	return randstr.Hex(10)
 }
 
 func (cm *Md5UserSaltCredManager) GetSealedPassword(password string, userSalt string, organizationSalt string) string {
