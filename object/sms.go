@@ -25,6 +25,7 @@ func SendSms(provider *Provider, content string, phoneNumbers ...string) error {
 	params := map[string]string{}
 	if provider.Type == go_sms_sender.TencentCloud {
 		params["0"] = content
+		params["1"] = "5" // complate DiscuzQ
 	} else {
 		params["code"] = content
 	}
