@@ -104,7 +104,14 @@ func (a *Adapter) close() {
 }
 
 func (a *Adapter) createTable() {
-	err := a.Engine.Sync2(new(Organization))
+	var err error
+
+	err = migration.Migrate()
+	if err != nil {
+		panic(err)
+	}
+
+	err = a.Engine.Sync2(new(Organization))
 	if err != nil {
 		panic(err)
 	}
