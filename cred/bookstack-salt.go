@@ -7,6 +7,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"io"
 	"strconv"
 	"strings"
@@ -116,16 +117,53 @@ func (cm *BookstackSaltCredManager) GenerateUserSalt() string {
 	return saltSecret + delimiter + interationStr + delimiter + salt
 }
 
-func (cm *BookstackSaltCredManager) GetSealedPassword(password string, userSalt string, organizationSalt string) string {
-	if userSalt == "" {
-		return NewSha256SaltCredManager().GetSealedPassword(password, userSalt, organizationSalt)
-	} else {
-		data := trimBookstackSalt(userSalt)
-		interation, _ := strconv.ParseInt(data["interation_string"], 10, 64)
-		hashResult, err := getBookstackHexDigest(password, data["salt_secret"], data["salt"], interation)
-		if err != nil {
-			return ""
-		}
-		return hashResult
+func (cm *BookstackSaltCredManager) CheckSealedPassword(password string, sealedPassword string) bool {
+	currentPassword, err := ParseStandardPassword(sealedPassword)
+	if err != nil {
+		panic(err)
 	}
+
+	if len(currentPassword.Chunk) < 4 {
+		panic(errors.New(StandardPasswordInvalidError))
+	}
+
+	data := map[string]string {
+		"salt_secret":       currentPassword.Chunk[0],
+		"interation_string": currentPassword.Chunk[1],
+		"hash":              currentPassword.Chunk[2],
+		"salt":              currentPassword.Chunk[3],
+	}
+
+	interation, _ := strconv.ParseInt(data["interation_string"], 10, 64)
+
+	passwordHash, err := getBookstackHexDigest(password, data["salt_secret"], data["salt"], int64(interation))
+	if err != nil {
+		panic(err)
+	}
+
+	return passwordHash == data["hash"]
+}
+
+func (cm *BookstackSaltCredManager) GetSealedPassword(password string, organizationSalt string) string {
+	saltSecret, err := saltSecret()
+	if err != nil {
+		panic(err)
+	}
+
+	salt, err := salt(saltLocalSecret + saltSecret)
+	if err != nil {
+		panic(err)
+	}
+
+	interation := randInt(1, 20)
+
+	hash, err := getBookstackHexDigest(password, saltSecret, salt, int64(interation))
+	if err != nil {
+		panic(err)
+	}
+
+	interationStr := strconv.Itoa(interation)
+	passwordHash := "$bookstack-salt$" + saltSecret + delimiter + interationStr + delimiter + hash + delimiter + salt
+
+	return passwordHash
 }

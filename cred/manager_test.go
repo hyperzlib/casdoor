@@ -24,7 +24,7 @@ func TestGetCredManager(t *testing.T) {
 	password := "123456"
 	salt := "123"
 	var cm CredManager
-	methods := []string{"plain", "sha256-salt", "md5-salt"}
+	methods := []string{"plain", "sha256-salt", "md5-salt", "bookstack-salt"}
 	for _, method := range methods {
 		cm = GetCredManager(method)
 		passwordHash := cm.GetSealedPassword(password, salt)
