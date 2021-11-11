@@ -15,6 +15,7 @@
 package object
 
 import (
+	"crypto/tls"
 	"net/http"
 	"strings"
 
@@ -22,7 +23,11 @@ import (
 )
 
 func sendWebhook(webhook *Webhook, record *Record) error {
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
 
 	body := strings.NewReader(util.StructToJson(record))
 
