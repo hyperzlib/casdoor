@@ -131,6 +131,7 @@ var migrations = []*migrate.Migration{
 			}
 
 			_, _ = engine.Exec(fmt.Sprintf("ALTER TABLE %s DROP COLUMN password_salt", engine.TableName(&User{})))
+			_, _ = engine.Exec(fmt.Sprintf("DROP TABLE %s", userTableBackup))
 			return nil
 		},
 		Rollback: func(engine *xorm.Engine) error {
