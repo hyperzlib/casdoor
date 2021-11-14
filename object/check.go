@@ -48,13 +48,9 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		return "password must have at least 6 characters"
 	}
 
-	if application.IsSignupItemVisible("Email") {
+	if application.IsSignupItemRequired("Email") || email != "" {
 		if email == "" {
-			if application.IsSignupItemRequired("Email") {
-				return "email cannot be empty"
-			} else {
-				return ""
-			}
+			return "email cannot be empty"
 		}
 
 		if HasUserByField(organization.Name, "email", email) {
@@ -64,13 +60,9 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		}
 	}
 
-	if application.IsSignupItemVisible("Phone") {
+	if application.IsSignupItemRequired("Phone") || phone != "" {
 		if phone == "" {
-			if application.IsSignupItemRequired("Phone") {
-				return "phone cannot be empty"
-			} else {
-				return ""
-			}
+			return "phone cannot be empty"
 		}
 
 		if HasUserByField(organization.Name, "phone", phone) {

@@ -102,7 +102,7 @@ func (c *ApiController) Signup() {
 		return
 	}
 
-	if application.IsSignupItemVisible("Email") && form.Email != "" {
+	if application.IsSignupItemRequired("Email") || form.Email != "" {
 		checkResult := object.CheckVerificationCode(form.Email, form.EmailCode)
 		if len(checkResult) != 0 {
 			c.ResponseError(fmt.Sprintf("Email: %s", checkResult))
@@ -111,7 +111,7 @@ func (c *ApiController) Signup() {
 	}
 
 	var checkPhone string
-	if application.IsSignupItemVisible("Phone") && form.Phone != "" {
+	if application.IsSignupItemRequired("Phone") || form.Phone != "" {
 		checkPhone = fmt.Sprintf("+%s%s", form.PhonePrefix, form.Phone)
 		checkResult := object.CheckVerificationCode(checkPhone, form.PhoneCode)
 		if len(checkResult) != 0 {
