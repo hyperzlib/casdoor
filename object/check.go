@@ -34,7 +34,7 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		return "organization does not exist"
 	}
 
-	if application.IsSignupItemVisible("Username") {
+	if application.IsSignupItemRequired("Username") {
 		if len(username) <= 1 {
 			return "username must have at least 2 characters"
 		} else if reWhiteSpace.MatchString(username) {
@@ -72,7 +72,7 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		}
 	}
 
-	if application.IsSignupItemVisible("Display name") {
+	if application.IsSignupItemRequired("Display name") {
 		if displayName == "" {
 			return "displayName cannot be blank"
 		} else if application.GetSignupItemRule("Display name") == "Personal" {
@@ -82,7 +82,7 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		}
 	}
 
-	if application.IsSignupItemVisible("Affiliation") {
+	if application.IsSignupItemRequired("Affiliation") {
 		if affiliation == "" {
 			return "affiliation cannot be blank"
 		}

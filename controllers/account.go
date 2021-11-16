@@ -130,7 +130,7 @@ func (c *ApiController) Signup() {
 	}
 
 	username := form.Username
-	if !application.IsSignupItemVisible("Username") {
+	if !application.IsSignupItemRequired("Username") {
 		username = id
 	}
 
