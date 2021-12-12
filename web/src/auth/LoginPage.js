@@ -34,7 +34,11 @@ import LinkedInLoginButton from "./LinkedInLoginButton";
 import WeComLoginButton from "./WeComLoginButton";
 import LarkLoginButton from "./LarkLoginButton";
 import GitLabLoginButton from "./GitLabLoginButton";
+import AppleLoginButton from "./AppleLoginButton"
+import AzureADLoginButton from "./AzureADLoginButton";
+import SlackLoginButton from "./SlackLoginButton";
 import CustomGithubCorner from "../CustomGithubCorner";
+import {CountDownInput} from "../component/CountDownInput";
 
 class LoginPage extends React.Component {
   constructor(props) {
@@ -45,7 +49,10 @@ class LoginPage extends React.Component {
       applicationName: props.applicationName !== undefined ? props.applicationName : (props.match === undefined ? null : props.match.params.applicationName),
       application: null,
       mode: props.mode !== undefined ? props.mode : (props.match === undefined ? null : props.match.params.mode), // "signup" or "signin"
+      isCodeSignin: false,
       msg: null,
+      username: null,
+      validEmailOrPhone: false
     };
   }
 
@@ -106,6 +113,7 @@ class LoginPage extends React.Component {
     const application = this.getApplicationObj();
     const ths = this;
     values["type"] = this.state.type;
+    values["phonePrefix"] = this.getApplicationObj()?.organizationObj.phonePrefix;
     const oAuthParams = Util.getOAuthGetParameters();
 
     AuthBackend.login(values, oAuthParams)
@@ -175,18 +183,46 @@ class LoginPage extends React.Component {
       return <LarkLoginButton text={text} align={"center"} />
     } else if (type === "GitLab") {
       return <GitLabLoginButton text={text} align={"center"} />
+    } else if (type === "Apple") {
+      return <AppleLoginButton text={text} align={"center"} />
+    } else if (type === "AzureAD") {
+      return <AzureADLoginButton text={text} align={"center"} />
+    } else if (type === "Slack") {
+      return <SlackLoginButton text={text} align={"center"} />
     }
 
     return text;
   }
 
+  getSamlUrl(providerId) {
+    const params = new URLSearchParams(this.props.location.search);
+    let clientId = params.get("client_id")
+    let application = params.get("state");
+    let realRedirectUri = params.get("redirect_uri");
+    let redirectUri = `${window.location.origin}/callback/saml`
+    let providerName = providerId.split('/')[1];
+    AuthBackend.getSamlLogin(providerId).then((res) => {
+      const replyState = `${clientId}&${application}&${providerName}&${realRedirectUri}&${redirectUri}`;
+      window.location.href = `${res.data}&RelayState=${btoa(replyState)}`;
+    });
+  }
+
   renderProviderLogo(provider, application, width, margin, size) {
     if (size === "small") {
-      return (
-        <a key={provider.displayName} href={Provider.getAuthUrl(application, provider, "signup")}>
-          <img width={width} height={width} src={Provider.getProviderLogo(provider)} alt={provider.displayName} style={{margin: margin}} />
-        </a>
-      )
+      if (provider.category === "OAuth") {
+        return (
+          <a key={provider.displayName} href={Provider.getAuthUrl(application, provider, "signup")}>
+            <img width={width} height={width} src={Provider.getProviderLogo(provider)} alt={provider.displayName} style={{margin: margin}} />
+          </a>
+        )
+      } else if (provider.category === "SAML") {
+        return (
+          <a key={provider.displayName} onClick={this.getSamlUrl.bind(this, provider.owner + "/" + provider.name)}>
+            <img width={width} height={width} src={Provider.getProviderLogo(provider)} alt={provider.displayName} style={{margin: margin}} />
+          </a>
+        )
+      }
+      
     } else {
       return (
         <div key={provider.displayName} style={{marginBottom: "10px"}}>
@@ -243,7 +279,7 @@ class LoginPage extends React.Component {
             autoSignin: true,
           }}
           onFinish={(values) => {this.onFinish(values)}}
-          style={{width: "250px"}}
+          style={{width: "300px"}}
           size="large"
         >
           <Form.Item
@@ -270,25 +306,61 @@ class LoginPage extends React.Component {
           </Form.Item>
           <Form.Item
             name="username"
-            rules={[{ required: true, message: i18next.t("login:Please input your username, Email or phone!") }]}
+            rules={[
+                {
+                  required: true,
+                  message: i18next.t("login:Please input your username, Email or phone!")
+                },
+                {
+                  validator: (_, value) => {
+                    if (this.state.isCodeSignin) {
+                      if (this.state.email !== "" && !Setting.isValidEmail(this.state.username) && !Setting.isValidPhone(this.state.username)) {
+                        this.setState({validEmailOrPhone: false});
+                        return Promise.reject(i18next.t("login:The input is not valid Email or Phone!"));
+                      }
+                    }
+                    this.setState({validEmailOrPhone: true});
+                    return Promise.resolve();
+                  }
+                }
+              ]}
           >
             <Input
               prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder={i18next.t("login:username, Email or phone")}
+              placeholder={ this.state.isCodeSignin ? i18next.t("login:Email or phone") : i18next.t("login:username, Email or phone") }
               disabled={!application.enablePassword}
+              onChange={e => {
+                this.setState({
+                  username: e.target.value,
+                });
+              }}
             />
           </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: i18next.t("login:Please input your password!") }]}
-          >
-            <Input
-              prefix={<LockOutlined className="site-form-item-icon" />}
-              type="password"
-              placeholder={i18next.t("login:Password")}
-              disabled={!application.enablePassword}
-            />
-          </Form.Item>
+          {
+            this.state.isCodeSignin ? (
+              <Form.Item
+                name="code"
+                rules={[{ required: true, message: i18next.t("login:Please input your code!") }]}
+              >
+                <CountDownInput
+                  disabled={this.state.username?.length === 0 || !this.state.validEmailOrPhone}
+                  onButtonClickArgs={[this.state.username, "", Setting.getApplicationOrgName(application), true]}
+                />
+              </Form.Item>
+            ) : (
+              <Form.Item
+                name="password"
+                rules={[{ required: true, message: i18next.t("login:Please input your password!") }]}
+              >
+                <Input
+                  prefix={<LockOutlined className="site-form-item-icon" />}
+                  type="password"
+                  placeholder={i18next.t("login:Password")}
+                  disabled={!application.enablePassword}
+                />
+              </Form.Item>
+            )
+          }
           <Form.Item>
             <Form.Item name="autoSignin" valuePropName="checked" noStyle>
               <Checkbox style={{float: "left"}} disabled={!application.enablePassword}>
@@ -370,14 +442,25 @@ class LoginPage extends React.Component {
       )
     } else {
       return (
-        <div style={{float: "right"}}>
-          {i18next.t("login:No account yet?")}&nbsp;
-          <a onClick={() => {
-            Setting.goToSignup(this, application);
-          }}>
-            {i18next.t("login:sign up now")}
-          </a>
-        </div>
+        <React.Fragment>
+          <span style={{float: "left"}}>
+            <a onClick={() => {
+              this.setState({
+                isCodeSignin: !this.state.isCodeSignin,
+              });
+            }}>
+              {this.state.isCodeSignin ? i18next.t("login:Sign in with password") : i18next.t("login:Sign in with code")}
+            </a>
+          </span>
+          <span style={{float: "right"}}>
+            {i18next.t("login:No account?")}&nbsp;
+            <a onClick={() => {
+              Setting.goToSignup(this, application);
+            }}>
+              {i18next.t("login:sign up now")}
+            </a>
+          </span>
+        </React.Fragment>
       )
     }
   }

@@ -27,6 +27,9 @@ import (
 	"github.com/casbin/casdoor/util"
 )
 
+// @router /get-resources [get]
+// @Tag Resource API
+// @Title GetResources
 func (c *ApiController) GetResources() {
 	owner := c.Input().Get("owner")
 	user := c.Input().Get("user")
@@ -43,6 +46,9 @@ func (c *ApiController) GetResources() {
 	}
 }
 
+// @Tag Resource API
+// @Title GetResource
+// @router /get-resource [get]
 func (c *ApiController) GetResource() {
 	id := c.Input().Get("id")
 
@@ -50,6 +56,9 @@ func (c *ApiController) GetResource() {
 	c.ServeJSON()
 }
 
+// @Tag Resource API
+// @Title UpdateResource
+// @router /update-resource [post]
 func (c *ApiController) UpdateResource() {
 	id := c.Input().Get("id")
 
@@ -63,6 +72,9 @@ func (c *ApiController) UpdateResource() {
 	c.ServeJSON()
 }
 
+// @Tag Resource API
+// @Title AddResource
+// @router /add-resource [post]
 func (c *ApiController) AddResource() {
 	var resource object.Resource
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &resource)
@@ -74,6 +86,9 @@ func (c *ApiController) AddResource() {
 	c.ServeJSON()
 }
 
+// @Tag Resource API
+// @Title DeleteResource
+// @router /delete-resource [post]
 func (c *ApiController) DeleteResource() {
 	var resource object.Resource
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &resource)
@@ -96,6 +111,9 @@ func (c *ApiController) DeleteResource() {
 	c.ServeJSON()
 }
 
+// @Tag Resource API
+// @Title UploadResource
+// @router /upload-resource [post]
 func (c *ApiController) UploadResource() {
 	owner := c.Input().Get("owner")
 	username := c.Input().Get("user")
@@ -103,6 +121,8 @@ func (c *ApiController) UploadResource() {
 	tag := c.Input().Get("tag")
 	parent := c.Input().Get("parent")
 	fullFilePath := c.Input().Get("fullFilePath")
+	createdTime := c.Input().Get("createdTime")
+	description := c.Input().Get("description")
 
 	file, header, err := c.GetFile("file")
 	if err != nil {
@@ -110,6 +130,11 @@ func (c *ApiController) UploadResource() {
 		return
 	}
 	defer file.Close()
+
+	if username == "" || fullFilePath == "" {
+		c.ResponseError(fmt.Sprintf("username or fullFilePath is empty: username = %s, fullFilePath = %s", username, fullFilePath))
+		return
+	}
 
 	filename := filepath.Base(fullFilePath)
 	fileBuffer := bytes.NewBuffer(nil)
@@ -133,18 +158,21 @@ func (c *ApiController) UploadResource() {
 		fileType, _ = util.GetOwnerAndNameFromId(mimeType)
 	}
 
-	fileUrl, objectKey, err := object.UploadFile(provider, fullFilePath, fileBuffer)
+	fileUrl, objectKey, err := object.UploadFileSafe(provider, fullFilePath, fileBuffer)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
 	}
 
+	if createdTime == "" {
+		createdTime = util.GetCurrentTime()
+	}
 	fileFormat := filepath.Ext(fullFilePath)
 	fileSize := int(header.Size)
 	resource := &object.Resource{
 		Owner:       owner,
 		Name:        objectKey,
-		CreatedTime: util.GetCurrentTime(),
+		CreatedTime: createdTime,
 		User:        username,
 		Provider:    provider.Name,
 		Application: application,
@@ -155,18 +183,22 @@ func (c *ApiController) UploadResource() {
 		FileFormat:  fileFormat,
 		FileSize:    fileSize,
 		Url:         fileUrl,
+		Description: description,
 	}
 	object.AddOrUpdateResource(resource)
 
 	switch tag {
 	case "avatar":
 		if user == nil {
-			c.ResponseError("user is nil for tag: \"avatar\"")
-			return
+			user = object.GetUserNoCheck(username)
+			if user == nil {
+				c.ResponseError("user is nil for tag: \"avatar\"")
+				return
+			}
 		}
 
 		user.Avatar = fileUrl
-		object.UpdateUser(user.GetId(), user)
+		object.UpdateUser(user.GetId(), user, []string{"avatar"})
 	case "termsOfUse":
 		applicationId := fmt.Sprintf("admin/%s", parent)
 		app := object.GetApplication(applicationId)

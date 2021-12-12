@@ -39,13 +39,19 @@ type User struct {
 	Address           []string `json:"address"`
 	Affiliation       string   `xorm:"varchar(100)" json:"affiliation"`
 	Title             string   `xorm:"varchar(100)" json:"title"`
+	IdCardType        string   `xorm:"varchar(100)" json:"idCardType"`
+	IdCard            string   `xorm:"varchar(100)" json:"idCard"`
 	Homepage          string   `xorm:"varchar(100)" json:"homepage"`
 	Bio               string   `xorm:"varchar(100)" json:"bio"`
 	Tag               string   `xorm:"varchar(100)" json:"tag"`
 	Region            string   `xorm:"varchar(100)" json:"region"`
 	Language          string   `xorm:"varchar(100)" json:"language"`
+	Gender            string   `xorm:"varchar(100)" json:"gender"`
+	Birthday          string   `xorm:"varchar(100)" json:"birthday"`
+	Education         string   `xorm:"varchar(100)" json:"education"`
 	Score             int      `json:"score"`
-	Ranking           int      `json:"ranking"`
+	Ranking           int      `xorm:"int notnull index autoincr" json:"ranking"`
+	IsDefaultAvatar   bool     `json:"isDefaultAvatar"`
 	IsOnline          bool     `json:"isOnline"`
 	IsAdmin           bool     `json:"isAdmin"`
 	IsGlobalAdmin     bool     `json:"isGlobalAdmin"`
@@ -54,6 +60,10 @@ type User struct {
 	SignupApplication string   `xorm:"varchar(100)" json:"signupApplication"`
 	Hash              string   `xorm:"varchar(100)" json:"hash"`
 	PreHash           string   `xorm:"varchar(100)" json:"preHash"`
+
+	CreatedIp      string `xorm:"varchar(100)" json:"createdIp"`
+	LastSigninTime string `xorm:"varchar(100)" json:"lastSigninTime"`
+	LastSigninIp   string `xorm:"varchar(100)" json:"lastSigninIp"`
 
 	Github   string `xorm:"varchar(100)" json:"github"`
 	Google   string `xorm:"varchar(100)" json:"google"`
@@ -67,6 +77,9 @@ type User struct {
 	Wecom    string `xorm:"wecom varchar(100)" json:"wecom"`
 	Lark     string `xorm:"lark varchar(100)" json:"lark"`
 	Gitlab   string `xorm:"gitlab varchar(100)" json:"gitlab"`
+	Apple    string `xorm:"apple varchar(100)" json:"apple"`
+	AzureAD  string `xorm:"azuread varchar(100)" json:"azuread"`
+	Slack    string `xorm:"slack varchar(100)" json:"slack"`
 
 	Ldap       string            `xorm:"ldap varchar(100)" json:"ldap"`
 	Properties map[string]string `json:"properties"`
@@ -110,9 +123,28 @@ func GetUserCount(owner string) int {
 	return int(count)
 }
 
+func GetOnlineUserCount(owner string, isOnline int) int {
+	count, err := adapter.Engine.Where("is_online = ?", isOnline).Count(&User{Owner: owner})
+	if err != nil {
+		panic(err)
+	}
+
+	return int(count)
+}
+
 func GetUsers(owner string) []*User {
 	users := []*User{}
 	err := adapter.Engine.Desc("created_time").Find(&users, &User{Owner: owner})
+	if err != nil {
+		panic(err)
+	}
+
+	return users
+}
+
+func GetSortedUsers(owner string, sorter string, limit int) []*User {
+	users := []*User{}
+	err := adapter.Engine.Desc(sorter).Limit(limit, 0).Find(&users, &User{Owner: owner})
 	if err != nil {
 		panic(err)
 	}
@@ -148,8 +180,31 @@ func getUser(owner string, name string) *User {
 	}
 }
 
+func GetUserByEmail(owner string, email string) *User {
+	if owner == "" || email == "" {
+		return nil
+	}
+
+	user := User{Owner: owner, Email: email}
+	existed, err := adapter.Engine.Get(&user)
+	if err != nil {
+		panic(err)
+	}
+
+	if existed {
+		return &user
+	} else {
+		return nil
+	}
+}
+
 func GetUser(id string) *User {
 	owner, name := util.GetOwnerAndNameFromId(id)
+	return getUser(owner, name)
+}
+
+func GetUserNoCheck(id string) *User {
+	owner, name := util.GetOwnerAndNameFromIdNoCheck(id)
 	return getUser(owner, name)
 }
 
@@ -185,8 +240,8 @@ func GetLastUser(owner string) *User {
 	return nil
 }
 
-func UpdateUser(id string, user *User) bool {
-	owner, name := util.GetOwnerAndNameFromId(id)
+func UpdateUser(id string, user *User, columns []string) bool {
+	owner, name := util.GetOwnerAndNameFromIdNoCheck(id)
 	oldUser := getUser(owner, name)
 	if oldUser == nil {
 		return false
@@ -194,13 +249,17 @@ func UpdateUser(id string, user *User) bool {
 
 	user.UpdateUserHash()
 
-	if user.Avatar != oldUser.Avatar && user.Avatar != "" {
+	if user.Avatar != oldUser.Avatar && user.Avatar != "" && user.PermanentAvatar != "*" {
 		user.PermanentAvatar = getPermanentAvatarUrl(user.Owner, user.Name, user.Avatar)
 	}
 
-	affected, err := adapter.Engine.ID(core.PK{owner, name}).Cols("owner", "display_name", "avatar",
-		"location", "address", "region", "language", "affiliation", "title", "homepage", "bio", "score", "tag",
-		"is_admin", "is_global_admin", "is_forbidden", "is_deleted", "hash", "properties").Update(user)
+	if len(columns) == 0 {
+		columns = []string{"owner", "display_name", "avatar",
+			"location", "address", "region", "language", "affiliation", "title", "homepage", "bio", "score", "tag",
+			"is_admin", "is_global_admin", "is_forbidden", "is_deleted", "hash", "is_default_avatar", "properties"}
+	}
+
+	affected, err := adapter.Engine.ID(core.PK{owner, name}).Cols(columns...).Update(user)
 	if err != nil {
 		panic(err)
 	}
@@ -292,7 +351,7 @@ func AddUsers(users []*User) bool {
 	return affected != 0
 }
 
-func AddUsersSafe(users []*User) bool {
+func AddUsersInBatch(users []*User) bool {
 	batchSize := 1000
 
 	if len(users) == 0 {

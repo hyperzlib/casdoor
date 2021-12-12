@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import React from "react";
-import {Button, Col, Divider, Form, Select, Input, Row, Steps} from "antd";
+import {Button, Col, Form, Select, Input, Row, Steps} from "antd";
 import * as AuthBackend from "./AuthBackend";
 import * as ApplicationBackend from "../backend/ApplicationBackend";
 import * as Util from "./Util";
@@ -50,7 +50,7 @@ class ForgetPage extends React.Component {
       phone: "",
       emailCode: "",
       phoneCode: "",
-      verifyType: "", // "email" or "phone"
+      verifyType: null, // "email" or "phone"
       current: 0,
     };
   }
@@ -98,23 +98,36 @@ class ForgetPage extends React.Component {
                   username: username
               }).then((res) => {
                   if (res.status === "ok") {
-                      this.setState({phone: res.data.phone, email: res.data.email, username: res.data.name});
-                      switch (res.data2) {
-                          case "email":
-                              this.setState({isFixed: true, fixedContent: res.data.email, verifyType: "email"});
-                              break
-                          case "phone":
-                              this.setState({isFixed: true, fixedContent: res.data.phone, verifyType: "phone"});
-                              break
-                          default:
-                              break
-                      }
-                      if (this.state.isFixed) {
-                          forms.step2.setFieldsValue({email: this.state.fixedContent})
-                      }
-                      this.setState({current: 1})
+                    const phone = res.data.phone;
+                    const email = res.data.email;
+                    this.setState({phone: phone, email: email, username: res.data.name});
+
+                    if (phone !== "" && email === "") {
+                      this.setState({
+                        verifyType: "phone",
+                      });
+                    } else if (phone === "" && email !== "") {
+                      this.setState({
+                        verifyType: "email",
+                      });
+                    }
+
+                    switch (res.data2) {
+                      case "email":
+                        this.setState({isFixed: true, fixedContent: email, verifyType: "email"});
+                        break
+                      case "phone":
+                        this.setState({isFixed: true, fixedContent: phone, verifyType: "phone"});
+                        break
+                      default:
+                        break
+                    }
+                    if (this.state.isFixed) {
+                      forms.step2.setFieldsValue({email: this.state.fixedContent})
+                    }
+                    this.setState({current: 1})
                   } else {
-                      Setting.showMessage("error", i18next.t(`signup:${res.msg}`));
+                    Setting.showMessage("error", i18next.t(`signup:${res.msg}`));
                   }
               });
               break;
@@ -123,10 +136,9 @@ class ForgetPage extends React.Component {
               AuthBackend.login({
                   application: forms.step2.getFieldValue("application"),
                   organization: forms.step2.getFieldValue("organization"),
-                  email: forms.step2.getFieldValue("email"),
-                  emailCode: forms.step2.getFieldValue("emailCode"),
+                  username: forms.step2.getFieldValue("email"),
+                  code: forms.step2.getFieldValue("emailCode"),
                   phonePrefix: this.state.application?.organizationObj.phonePrefix,
-                  username: this.state.username,
                   type: "login"
               }, oAuthParams).then(res => {
                   if (res.status === "ok") {
@@ -154,6 +166,26 @@ class ForgetPage extends React.Component {
   }
 
   onFinishFailed(values, errorFields) {}
+
+  renderOptions() {
+    let options = [];
+
+    if (this.state.phone !== "") {
+      options.push(
+        <Option key={"phone"} value={"phone"}>
+          &nbsp;&nbsp;{Setting.getMaskedPhone(this.state.phone)}
+        </Option>
+      );
+    } else if (this.state.email !== "") {
+      options.push(
+        <Option key={"email"} value={"email"}>
+          &nbsp;&nbsp;{Setting.getMaskedEmail(this.state.email)}
+        </Option>
+      );
+    }
+
+    return options;
+  }
 
   renderForm(application) {
     return (
@@ -278,27 +310,20 @@ class ForgetPage extends React.Component {
                {
                   this.state.isFixed ? <Input disabled/> :
                      <Select
-                         disabled={this.state.username === ""}
-                         placeholder={i18next.t(
-                             "forget:Choose email verification or mobile verification"
-                         )}
-                         onChange={(value) => {
-                           if (value === this.state.phone) {
-                             this.setState({ verifyType: "phone" });
-                           }
-                           if (value === this.state.email) {
-                             this.setState({ verifyType: "email" });
-                           }
-                         }}
-                         allowClear
-                         style={{ textAlign: "left" }}
+                       key={this.state.verifyType}
+                       virtual={false} style={{textAlign: 'left'}}
+                       defaultValue={this.state.verifyType}
+                       disabled={this.state.username === ""}
+                       placeholder={i18next.t("forget:Choose email or phone")}
+                       onChange={(value) => {
+                         this.setState({
+                           verifyType: value,
+                         });
+                       }}
                      >
-                       <Option key={1} value={this.state.phone}>
-                         {this.state.phone.replace(/(\d{3})\d*(\d{4})/,'$1****$2')}
-                       </Option>
-                       <Option key={2} value={this.state.email}>
-                         {Setting.maskEmail(this.state.email)}
-                       </Option>
+                       {
+                         this.renderOptions()
+                       }
                      </Select>
                }
             </Form.Item>
@@ -315,33 +340,13 @@ class ForgetPage extends React.Component {
             >
               {this.state.verifyType === "email" ? (
                   <CountDownInput
-                      disabled={this.state.username === "" || this.state.verifyType === ""}
-                      placeHolder={i18next.t("code:Verify code")}
-                      defaultButtonText={i18next.t("code:Send Code")}
-                      onButtonClick={UserBackend.sendCode}
-                      onButtonClickArgs={[
-                        this.state.email,
-                        "email",
-                        this.state.application?.organizationObj.owner +
-                        "/" +
-                        this.state.application?.organizationObj.name,
-                      ]}
-                      coolDownTime={60}
+                    disabled={this.state.username === "" || this.state.verifyType === ""}
+                    onButtonClickArgs={[this.state.email, "email", Setting.getApplicationOrgName(this.state.application)]}
                   />
               ) : (
                   <CountDownInput
-                      disabled={this.state.username === "" || this.state.verifyType === ""}
-                      placeHolder={i18next.t("code:Verify code")}
-                      defaultButtonText={i18next.t("code:Send Code")}
-                      onButtonClick={UserBackend.sendCode}
-                      onButtonClickArgs={[
-                        this.state.phone,
-                        "phone",
-                        this.state.application?.organizationObj.owner +
-                        "/" +
-                        this.state.application?.organizationObj.name,
-                      ]}
-                      coolDownTime={60}
+                    disabled={this.state.username === "" || this.state.verifyType === ""}
+                    onButtonClickArgs={[this.state.phone, "phone", Setting.getApplicationOrgName(this.state.application)]}
                   />
               )}
             </Form.Item>
@@ -469,46 +474,61 @@ class ForgetPage extends React.Component {
     }
 
     return (
-        <React.Fragment>
-          <Divider style={{ fontSize: "28px" }}>
-            {i18next.t("forget:Retrieve password")}
-          </Divider>
+      <Row>
+        <Col span={24} style={{justifyContent: "center"}}>
           <Row>
-            <Col span={24} style={{ display: "flex", justifyContent: "center" }}>
+            <Col span={24}>
+              <div style={{marginTop: "80px", marginBottom: "10px", textAlign: "center"}}>
+                {
+                  Setting.renderHelmet(application)
+                }
+                <CustomGithubCorner />
+                {
+                  Setting.renderLogo(application)
+                }
+              </div>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={24}>
+              <div style={{textAlign: "center", fontSize: "28px"}}>
+                {i18next.t("forget:Retrieve password")}
+              </div>
+            </Col>
+          </Row>
+          <Row>
+            <Col span={24}>
               <Steps
-                  current={this.state.current}
-                  style={{
-                    width: "90%",
-                    maxWidth: "500px",
-                    margin: "auto",
-                    marginTop: "80px",
-                  }}
+                current={this.state.current}
+                style={{
+                  width: "90%",
+                  maxWidth: "500px",
+                  margin: "auto",
+                  marginTop: "80px",
+                }}
               >
                 <Step
-                    title={i18next.t("forget:Account")}
-                    icon={<UserOutlined />}
+                  title={i18next.t("forget:Account")}
+                  icon={<UserOutlined />}
                 />
                 <Step
-                    title={i18next.t("forget:Verify")}
-                    icon={<SolutionOutlined />}
+                  title={i18next.t("forget:Verify")}
+                  icon={<SolutionOutlined />}
                 />
                 <Step
-                    title={i18next.t("forget:Reset")}
-                    icon={<KeyOutlined />}
+                  title={i18next.t("forget:Reset")}
+                  icon={<KeyOutlined />}
                 />
               </Steps>
             </Col>
           </Row>
-          <Row>
-            <Col span={24} style={{ display: "flex", justifyContent: "center" }}>
-              <div style={{ marginTop: "10px", textAlign: "center" }}>
-                {Setting.renderHelmet(application)}
-                {this.renderForm(application)}
-              </div>
-            </Col>
-          </Row>
-          <CustomGithubCorner />
-        </React.Fragment>
+        </Col>
+        <Col span={24} style={{ display: "flex", justifyContent: "center" }}>
+          <div style={{ marginTop: "10px", textAlign: "center" }}>
+            {this.renderForm(application)}
+          </div>
+        </Col>
+      </Row>
     );
   }
 }

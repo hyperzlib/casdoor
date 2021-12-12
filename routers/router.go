@@ -31,10 +31,15 @@ func init() {
 
 func initAPI() {
 	ns :=
-		beego.NewNamespace("/api",
+		beego.NewNamespace("/",
 			beego.NSNamespace("/api",
 				beego.NSInclude(
 					&controllers.ApiController{},
+				),
+			),
+			beego.NSNamespace("",
+				beego.NSInclude(
+					&controllers.RootController{},
 				),
 			),
 		)
@@ -46,6 +51,8 @@ func initAPI() {
 	beego.Router("/api/logout", &controllers.ApiController{}, "POST:Logout")
 	beego.Router("/api/get-account", &controllers.ApiController{}, "GET:GetAccount")
 	beego.Router("/api/unlink", &controllers.ApiController{}, "POST:Unlink")
+	beego.Router("/api/get-saml-login", &controllers.ApiController{}, "GET:GetSamlLogin")
+	beego.Router("/api/acs", &controllers.ApiController{}, "POST:HandleSamlLogin")
 
 	beego.Router("/api/get-organizations", &controllers.ApiController{}, "GET:GetOrganizations")
 	beego.Router("/api/get-organization", &controllers.ApiController{}, "GET:GetOrganization")
@@ -55,6 +62,8 @@ func initAPI() {
 
 	beego.Router("/api/get-global-users", &controllers.ApiController{}, "GET:GetGlobalUsers")
 	beego.Router("/api/get-users", &controllers.ApiController{}, "GET:GetUsers")
+	beego.Router("/api/get-sorted-users", &controllers.ApiController{}, "GET:GetSortedUsers")
+	beego.Router("/api/get-user-count", &controllers.ApiController{}, "GET:GetUserCount")
 	beego.Router("/api/get-user", &controllers.ApiController{}, "GET:GetUser")
 	beego.Router("/api/update-user", &controllers.ApiController{}, "POST:UpdateUser")
 	beego.Router("/api/add-user", &controllers.ApiController{}, "POST:AddUser")
@@ -116,5 +125,6 @@ func initAPI() {
 	beego.Router("/api/send-email", &controllers.ApiController{}, "POST:SendEmail")
 	beego.Router("/api/send-sms", &controllers.ApiController{}, "POST:SendSms")
 
-	beego.Router("/.well-known/openid-configuration", &controllers.ApiController{}, "GET:GetOidcDiscovery")
+	beego.Router("/.well-known/openid-configuration", &controllers.RootController{}, "GET:GetOidcDiscovery")
+	beego.Router("/api/certs", &controllers.RootController{}, "*:GetOidcCert")
 }

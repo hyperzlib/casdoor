@@ -17,12 +17,14 @@ package object
 import (
 	_ "embed"
 	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
-	"github.com/casbin/casdoor/util"
 	"io/ioutil"
 	"time"
 
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
+	"github.com/casbin/casdoor/util"
+
+	"github.com/astaxie/beego"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -48,7 +50,7 @@ func generateJwtToken(application *Application, user *User) (string, error) {
 	claims := Claims{
 		User: *retUser,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "Casdoor",
+			Issuer:    beego.AppConfig.String("oidcOrigin"),
 			Subject:   retUser.Id,
 			Audience:  []string{application.ClientId},
 			ExpiresAt: jwt.NewNumericDate(expireTime),

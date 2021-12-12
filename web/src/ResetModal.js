@@ -18,13 +18,14 @@ import React from "react";
 import * as Setting from "./Setting"
 import * as UserBackend from "./backend/UserBackend"
 import {CountDownInput} from "./component/CountDownInput";
+import {MailOutlined, PhoneOutlined} from "@ant-design/icons";
 
 export const ResetModal = (props) => {
   const [visible, setVisible] = React.useState(false);
   const [confirmLoading, setConfirmLoading] = React.useState(false);
   const [dest, setDest] = React.useState("");
   const [code, setCode] = React.useState("");
-  const {buttonText, destType, coolDownTime, org} = props;
+  const {buttonText, destType, org} = props;
 
   const showModal = () => {
     setVisible(true);
@@ -78,20 +79,17 @@ export const ResetModal = (props) => {
         <Col style={{margin: "0px auto 40px auto", width: 1000, height: 300}}>
           <Row style={{width: "100%", marginBottom: "20px"}}>
             <Input
-              addonBefore={i18next.t("user:New " + destType)}
+              addonBefore={destType === "email" ? i18next.t("user:New Email") : i18next.t("user:New phone")}
+              prefix={destType === "email" ? <MailOutlined /> : <PhoneOutlined />}
               placeholder={placeHolder}
               onChange={e => setDest(e.target.value)}
             />
           </Row>
           <Row style={{width: "100%", marginBottom: "20px"}}>
             <CountDownInput
-              defaultButtonText={i18next.t("code:Send Code")}
               textBefore={i18next.t("code:Code You Received")}
-              placeHolder={i18next.t("code:Enter your code")}
               onChange={setCode}
-              onButtonClick={UserBackend.sendCode}
-              onButtonClickArgs={[dest, destType, org?.owner + "/" + org?.name]}
-              coolDownTime={coolDownTime}
+              onButtonClickArgs={[dest, destType, `${org?.owner}/${org?.name}`]}
             />
           </Row>
         </Col>

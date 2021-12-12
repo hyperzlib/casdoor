@@ -16,7 +16,23 @@ package controllers
 
 import "github.com/casbin/casdoor/object"
 
-func (c *ApiController) GetOidcDiscovery() {
+// @Title GetOidcDiscovery
+// @Tag OIDC API
+// @router /.well-known/openid-configuration [get]
+func (c *RootController) GetOidcDiscovery() {
 	c.Data["json"] = object.GetOidcDiscovery()
+	c.ServeJSON()
+}
+
+// @Title GetOidcCert
+// @Tag OIDC API
+// @router /api/certs [get]
+func (c *RootController) GetOidcCert() {
+	jwks, err := object.GetJSONWebKeySet()
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	c.Data["json"] = jwks
 	c.ServeJSON()
 }

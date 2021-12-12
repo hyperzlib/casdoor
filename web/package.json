@@ -13,6 +13,7 @@
     "codemirror": "^5.61.1",
     "copy-to-clipboard": "^3.3.1",
     "craco-less": "^1.17.1",
+    "i18n-iso-countries": "^7.0.0",
     "i18next": "^19.8.9",
     "moment": "^2.29.1",
     "react": "^17.0.2",
@@ -33,7 +34,7 @@
     "test": "craco test",
     "eject": "craco eject",
     "crowdin:sync": "crowdin upload && crowdin download",
-    "preinstall": "npx use-yarn -m 'Please use yarn!'"
+    "preinstall": "node -e \"if (process.env.npm_execpath.indexOf('yarn') === -1) throw new Error('Use yarn for installing: https://yarnpkg.com/en/docs/install')\""
   },
   "eslintConfig": {
     "extends": "react-app"

@@ -8,6 +8,8 @@
   },
   "application": {
     "Edit Application": "Edit Application",
+    "Enable Code Signin": "Enable Code Signin",
+    "Enable Code Signin - Tooltip": "Enable Code Signin - Tooltip",
     "Enable signup": "Enable signup",
     "Enable signup - Tooltip": "Whether to allow users to sign up",
     "File uploaded successfully": "File uploaded successfully",
@@ -32,12 +34,12 @@
     "Please input your phone verification code!": "Please input your phone verification code!",
     "Please input your verification code!": "Please input your verification code!",
     "Send Code": "Send Code",
-    "Submit and complete": "Submit and complete",
-    "Verify code": "Verify code"
+    "Submit and complete": "Submit and complete"
   },
   "forget": {
     "Account": "Account",
     "Change Password": "Change Password",
+    "Choose email or phone": "Choose email or phone",
     "Confirm": "Confirm",
     "Next Step": "Next Step",
     "Password": "Password",
@@ -60,7 +62,7 @@
     "Avatar - Tooltip": "Avatar to show to others",
     "Back Home": "Back Home",
     "Captcha": "Captcha",
-    "Client ip": "Client ip",
+    "Client IP": "Client IP",
     "Created time": "Created time",
     "Default avatar": "Default avatar",
     "Default avatar - Tooltip": "default avatar",
@@ -79,10 +81,14 @@
     "Forget URL - Tooltip": "Unique string-style identifier",
     "Home": "Home",
     "Home - Tooltip": "Application homepage",
+    "ID": "ID",
     "ID - Tooltip": "random string",
     "LDAPs": "LDAPs",
     "LDAPs - Tooltip": "LDAPs - Tooltip",
     "Logo - Tooltip": "App's image tag",
+    "Master password": "Master password",
+    "Master password - Tooltip": "Master password - Tooltip",
+    "Method": "Method",
     "Name": "Name",
     "Name - Tooltip": "Unique string-style identifier",
     "OAuth providers": "OAuth providers",
@@ -106,7 +112,7 @@
     "Providers": "Providers",
     "Providers - Tooltip": "List of third-party applications that can be used to log in",
     "Records": "Records",
-    "Request uri": "Request uri",
+    "Request URI": "Request URI",
     "Resources": "Resources",
     "Save": "Save",
     "Scope": "Scope",
@@ -127,9 +133,9 @@
     "User containers": "User containers",
     "User type": "User type",
     "User type - Tooltip": "Permission role owned by the user",
-    "Username": "Username",
     "Users": "Users",
     "Users under all organizations": "Users under all organizations",
+    "Webhooks": "Webhooks",
     "{total} in total": "{total} in total"
   },
   "ldap": {
@@ -164,18 +170,26 @@
     "Auto sign in": "Auto sign in",
     "Continue with": "Continue with",
     "Forgot password?": "Forgot password?",
-    "No account yet?": "No account yet?",
+    "No account?": "No account?",
     "Or sign in with another account": "Or sign in with another account",
     "Password": "Password",
     "Password - Tooltip": "Password - Tooltip",
+    "Please input your code!": "Please input your code!",
     "Please input your password!": "Please input your password!",
+    "Please input your password, at least 6 characters!": "Please input your password, at least 6 characters!",
+    "Please input your Email or phone!": "Please input your Email or phone!",
     "Please input your username, Email or phone!": "Please input your username, Email or phone!",
     "Sign In": "Sign In",
+    "Sign in with code": "Sign in with code",
+    "Sign in with password": "Sign in with password",
     "Sign in with {type}": "Sign in with {type}",
     "Signing in...": "Signing in...",
     "To access": "To access",
     "sign up now": "sign up now",
-    "username, Email or phone": "username, Email or phone"
+    "Email or phone": "Email or phone",
+    "username, Email or phone": "username, Email or phone",
+    "Invalid Email or phone": "Invalid Email or phone",
+    "The input is not valid Email or Phone!": "The input is not valid Email or Phone!"
   },
   "organization": {
     "Default avatar": "Default avatar",
@@ -205,7 +219,7 @@
     "Email Title": "Email Title",
     "Email Title - Tooltip": "Unique string-style identifier",
     "Endpoint": "Endpoint",
-    "Endpoint - Tooltip": "Storage bucket endpoint",
+    "Endpoint (Intranet)": "Endpoint (Intranet)",
     "Host": "Host",
     "Host - Tooltip": "Unique string-style identifier",
     "Method": "Method",
@@ -215,10 +229,10 @@
     "Port - Tooltip": "Unique string-style identifier",
     "Provider URL": "Provider URL",
     "Provider URL - Tooltip": "Unique string-style identifier",
-    "Region": "Region",
-    "Region - Tooltip": "Storage region",
     "Region ID": "Region ID",
     "Region ID - Tooltip": "Region ID - Tooltip",
+    "Region endpoint for Internet": "Region endpoint for Internet",
+    "Region endpoint for Intranet": "Region endpoint for Intranet",
     "Secret access key": "Secret access key",
     "SecretAccessKey - Tooltip": "SecretAccessKey - Tooltip",
     "Sign Name": "Sign Name",
@@ -243,6 +257,9 @@
     "required": "required",
     "rule": "rule",
     "visible": "visible"
+  },
+  "record": {
+    "Is Triggered": "Is Triggered"
   },
   "resource": {
     "Application": "Application",
@@ -318,7 +335,9 @@
     "Location": "Location",
     "Location - Tooltip": "Location - Tooltip",
     "Modify password...": "Modify password...",
+    "New Email": "New Email",
     "New Password": "New Password",
+    "New phone": "New phone",
     "OK": "OK",
     "Old Password": "Old Password",
     "Password": "Password",
@@ -339,5 +358,14 @@
     "Unlink": "Unlink",
     "Upload a photo": "Upload a photo",
     "input password": "input password"
+  },
+  "webhook": {
+    "Content type": "Content type",
+    "Content type - Tooltip": "Content type - Tooltip",
+    "Edit Webhook": "Edit Webhook",
+    "Events": "Events",
+    "Events - Tooltip": "Events - Tooltip",
+    "URL": "URL",
+    "URL - Tooltip": "URL - Tooltip"
   }
 }

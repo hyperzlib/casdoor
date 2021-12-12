@@ -27,6 +27,7 @@ import (
 
 // GetGlobalUsers
 // @Title GetGlobalUsers
+// @Tag User API
 // @Description get global users
 // @Success 200 {array} object.User The Response object
 // @router /get-global-users [get]
@@ -46,6 +47,7 @@ func (c *ApiController) GetGlobalUsers() {
 
 // GetUsers
 // @Title GetUsers
+// @Tag User API
 // @Description
 // @Param   owner     query    string  true        "The owner of users"
 // @Success 200 {array} object.User The Response object
@@ -67,19 +69,30 @@ func (c *ApiController) GetUsers() {
 
 // GetUser
 // @Title GetUser
+// @Tag User API
 // @Description get user
 // @Param   id     query    string  true        "The id of the user"
 // @Success 200 {object} object.User The Response object
 // @router /get-user [get]
 func (c *ApiController) GetUser() {
 	id := c.Input().Get("id")
+	owner := c.Input().Get("owner")
+	email := c.Input().Get("email")
 
-	c.Data["json"] = object.GetMaskedUser(object.GetUser(id))
+	var user *object.User
+	if email == "" {
+		user = object.GetUser(id)
+	} else {
+		user = object.GetUserByEmail(owner, email)
+	}
+
+	c.Data["json"] = object.GetMaskedUser(user)
 	c.ServeJSON()
 }
 
 // UpdateUser
 // @Title UpdateUser
+// @Tag User API
 // @Description update user
 // @Param   id     query    string  true        "The id of the user"
 // @Param   body    body   object.User  true        "The details of the user"
@@ -87,6 +100,7 @@ func (c *ApiController) GetUser() {
 // @router /update-user [post]
 func (c *ApiController) UpdateUser() {
 	id := c.Input().Get("id")
+	columnsStr := c.Input().Get("columns")
 
 	var user object.User
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
@@ -99,10 +113,14 @@ func (c *ApiController) UpdateUser() {
 		return
 	}
 
-	affected := object.UpdateUser(id, &user)
+	columns := []string{}
+	if columnsStr != "" {
+		columns = strings.Split(columnsStr, ",")
+	}
+
+	affected := object.UpdateUser(id, &user, columns)
 	if affected {
-		newUser := object.GetUser(user.GetId())
-		original.UpdateUserToOriginalDatabase(newUser)
+		original.UpdateUserToOriginalDatabase(&user)
 	}
 
 	c.Data["json"] = wrapActionResponse(affected)
@@ -111,6 +129,7 @@ func (c *ApiController) UpdateUser() {
 
 // AddUser
 // @Title AddUser
+// @Tag User API
 // @Description add user
 // @Param   body    body   object.User  true        "The details of the user"
 // @Success 200 {object} controllers.Response The Response object
@@ -128,6 +147,7 @@ func (c *ApiController) AddUser() {
 
 // DeleteUser
 // @Title DeleteUser
+// @Tag User API
 // @Description delete user
 // @Param   body    body   object.User  true        "The details of the user"
 // @Success 200 {object} controllers.Response The Response object
@@ -145,6 +165,7 @@ func (c *ApiController) DeleteUser() {
 
 // GetEmailAndPhone
 // @Title GetEmailAndPhone
+// @Tag User API
 // @Description get email and phone by username
 // @Param   username    formData   string  true        "The username of the user"
 // @Param   organization    formData   string  true        "The organization of the user"
@@ -179,6 +200,7 @@ func (c *ApiController) GetEmailAndPhone() {
 
 // SetPassword
 // @Title SetPassword
+// @Tag Account API
 // @Description set password
 // @Param   userOwner   formData    string  true        "The owner of the user"
 // @Param   userName   formData    string  true        "The name of the user"
@@ -251,6 +273,9 @@ func (c *ApiController) SetPassword() {
 	c.ServeJSON()
 }
 
+// @Title CheckUserPassword
+// @router /check-user-password [post]
+// @Tag User API
 func (c *ApiController) CheckUserPassword() {
 	var user object.User
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &user)
@@ -264,4 +289,45 @@ func (c *ApiController) CheckUserPassword() {
 	} else {
 		c.ResponseError(msg)
 	}
+}
+
+// GetSortedUsers
+// @Title GetSortedUsers
+// @Tag User API
+// @Description
+// @Param   owner     query    string  true        "The owner of users"
+// @Param   sorter     query    string  true        "The DB column name to sort by, e.g., created_time"
+// @Param   limit     query    string  true        "The count of users to return, e.g., 25"
+// @Success 200 {array} object.User The Response object
+// @router /get-sorted-users [get]
+func (c *ApiController) GetSortedUsers() {
+	owner := c.Input().Get("owner")
+	sorter := c.Input().Get("sorter")
+	limit := util.ParseInt(c.Input().Get("limit"))
+
+	c.Data["json"] = object.GetMaskedUsers(object.GetSortedUsers(owner, sorter, limit))
+	c.ServeJSON()
+}
+
+// GetUserCount
+// @Title GetUserCount
+// @Tag User API
+// @Description
+// @Param   owner     query    string  true        "The owner of users"
+// @Param   isOnline     query    string  true        "The filter for query, 1 for online, 0 for offline, empty string for all users"
+// @Success 200 {int} int The count of filtered users for an organization
+// @router /get-user-count [get]
+func (c *ApiController) GetUserCount() {
+	owner := c.Input().Get("owner")
+	isOnline := c.Input().Get("isOnline")
+
+	count := 0
+	if isOnline == "" {
+		count = object.GetUserCount(owner)
+	} else {
+		count = object.GetOnlineUserCount(owner, util.ParseInt(isOnline))
+	}
+
+	c.Data["json"] = count
+	c.ServeJSON()
 }

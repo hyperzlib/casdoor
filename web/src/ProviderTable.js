@@ -17,6 +17,7 @@ import {DownOutlined, DeleteOutlined, UpOutlined} from '@ant-design/icons';
 import {Button, Col, Row, Select, Switch, Table, Tooltip} from 'antd';
 import * as Setting from "./Setting";
 import i18next from "i18next";
+import * as Provider from "./auth/Provider";
 
 const { Option } = Select;
 
@@ -38,7 +39,7 @@ class ProviderTable extends React.Component {
   }
 
   addRow(table) {
-    let row = {name: "Please select a provider", canSignUp: true, canSignIn: true, canUnlink: true, alertType: "None"};
+    let row = {name: Setting.getNewRowNameForTable(table, "Please select a provider"), canSignUp: true, canSignIn: true, canUnlink: true, alertType: "None"};
     if (table === undefined) {
       table = [];
     }
@@ -81,6 +82,26 @@ class ProviderTable extends React.Component {
               }
             </Select>
           )
+        }
+      },
+      {
+        title: i18next.t("provider:Category"),
+        dataIndex: 'category',
+        key: 'category',
+        width: '100px',
+        render: (text, record, index) => {
+          const provider = Setting.getArrayItem(this.props.providers, "name", record.name);
+          return provider?.category;
+        }
+      },
+      {
+        title: i18next.t("provider:Type"),
+        dataIndex: 'type',
+        key: 'type',
+        width: '80px',
+        render: (text, record, index) => {
+          const provider = Setting.getArrayItem(this.props.providers, "name", record.name);
+          return Provider.getProviderLogoWidget(provider);
         }
       },
       {
@@ -194,7 +215,7 @@ class ProviderTable extends React.Component {
       },
     ];
 
-    if (!this.props.application.enableSignUp || this.props.application.enablePassword) {
+    if (!this.props.application.enableSignUp) {
       columns = columns.filter(column => column.key !== "canSignUp");
     }
 

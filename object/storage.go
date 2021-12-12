@@ -19,9 +19,28 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/astaxie/beego"
 	"github.com/casbin/casdoor/storage"
 	"github.com/casbin/casdoor/util"
 )
+
+var isCloudIntranet bool
+
+func init() {
+	var err error
+	isCloudIntranet, err = beego.AppConfig.Bool("isCloudIntranet")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func getProviderEndpoint(provider *Provider) string {
+	endpoint := provider.Endpoint
+	if provider.IntranetEndpoint != "" && isCloudIntranet {
+		endpoint = provider.IntranetEndpoint
+	}
+	return endpoint
+}
 
 func getUploadFileUrl(provider *Provider, fullFilePath string, hasTimestamp bool) (string, string) {
 	objectKey := util.UrlJoin(util.GetUrlPath(provider.Domain), fullFilePath)
@@ -46,8 +65,9 @@ func getUploadFileUrl(provider *Provider, fullFilePath string, hasTimestamp bool
 	return fileUrl, objectKey
 }
 
-func UploadFile(provider *Provider, fullFilePath string, fileBuffer *bytes.Buffer) (string, string, error) {
-	storageProvider := storage.GetStorageProvider(provider.Type, provider.ClientId, provider.ClientSecret, provider.RegionId, provider.Bucket, provider.Endpoint)
+func uploadFile(provider *Provider, fullFilePath string, fileBuffer *bytes.Buffer) (string, string, error) {
+	endpoint := getProviderEndpoint(provider)
+	storageProvider := storage.GetStorageProvider(provider.Type, provider.ClientId, provider.ClientSecret, provider.RegionId, provider.Bucket, endpoint)
 	if storageProvider == nil {
 		return "", "", fmt.Errorf("the provider type: %s is not supported", provider.Type)
 	}
@@ -67,8 +87,28 @@ func UploadFile(provider *Provider, fullFilePath string, fileBuffer *bytes.Buffe
 	return fileUrl, objectKey, nil
 }
 
+func UploadFileSafe(provider *Provider, fullFilePath string, fileBuffer *bytes.Buffer) (string, string, error) {
+	var fileUrl string
+	var objectKey string
+	var err error
+	times := 0
+	for {
+		fileUrl, objectKey, err = uploadFile(provider, fullFilePath, fileBuffer)
+		if err != nil {
+			times += 1
+			if times >= 5 {
+				return "", "", err
+			}
+		} else {
+			break
+		}
+	}
+	return fileUrl, objectKey, nil
+}
+
 func DeleteFile(provider *Provider, objectKey string) error {
-	storageProvider := storage.GetStorageProvider(provider.Type, provider.ClientId, provider.ClientSecret, provider.RegionId, provider.Bucket, provider.Endpoint)
+	endpoint := getProviderEndpoint(provider)
+	storageProvider := storage.GetStorageProvider(provider.Type, provider.ClientId, provider.ClientSecret, provider.RegionId, provider.Bucket, endpoint)
 	if storageProvider == nil {
 		return fmt.Errorf("the provider type: %s is not supported", provider.Type)
 	}

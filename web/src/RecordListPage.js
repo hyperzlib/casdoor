@@ -31,7 +31,7 @@ class RecordListPage extends React.Component {
   }
 
   UNSAFE_componentWillMount() {
-    this.getRecords(1, 10);
+    this.getRecords(1, 20);
   }
 
   getRecords(page, pageSize) {
@@ -130,6 +130,13 @@ class RecordListPage extends React.Component {
         }
       },
       {
+        title: i18next.t("general:Method"),
+        dataIndex: 'method',
+        key: 'method',
+        width: '100px',
+        sorter: (a, b) => a.method.localeCompare(b.method),
+      },
+      {
         title: i18next.t("general:Request URI"),
         dataIndex: 'requestUri',
         key: 'requestUri',
@@ -167,6 +174,7 @@ class RecordListPage extends React.Component {
     ];
 
     const paginationProps = {
+      pageSize: 20,
       total: this.state.total,
       showQuickJumper: true,
       showSizeChanger: true,

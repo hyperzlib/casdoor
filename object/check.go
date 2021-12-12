@@ -17,10 +17,12 @@ package object
 import (
 	"fmt"
 	"regexp"
+
 	"xorm.io/core"
 
 	"github.com/casbin/casdoor/cred"
 	"github.com/casbin/casdoor/util"
+	goldap "github.com/go-ldap/ldap/v3"
 )
 
 var reWhiteSpace *regexp.Regexp
@@ -48,9 +50,13 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		return "password must have at least 6 characters"
 	}
 
-	if application.IsSignupItemRequired("Email") || email != "" {
+	if application.IsSignupItemVisible("Email") {
 		if email == "" {
-			return "email cannot be empty"
+			if application.IsSignupItemRequired("Email") {
+				return "email cannot be empty"
+			} else {
+				return ""
+			}
 		}
 
 		if HasUserByField(organization.Name, "email", email) {
@@ -60,9 +66,13 @@ func CheckUserSignup(application *Application, organization *Organization, usern
 		}
 	}
 
-	if application.IsSignupItemRequired("Phone") || phone != "" {
+	if application.IsSignupItemVisible("Phone") {
 		if phone == "" {
-			return "phone cannot be empty"
+			if application.IsSignupItemRequired("Phone") {
+				return "phone cannot be empty"
+			} else {
+				return ""
+			}
 		}
 
 		if HasUserByField(organization.Name, "phone", phone) {
@@ -119,6 +129,42 @@ func CheckPassword(user *User, password string) string {
 	}
 }
 
+func checkLdapUserPassword(user *User, password string) (*User, string) {
+	ldaps := GetLdaps(user.Owner)
+	ldapLoginSuccess := false
+	for _, ldapServer := range ldaps {
+		conn, err := GetLdapConn(ldapServer.Host, ldapServer.Port, ldapServer.Admin, ldapServer.Passwd)
+		if err != nil {
+			continue
+		}
+		SearchFilter := fmt.Sprintf("(&(objectClass=posixAccount)(uid=%s))", user.Name)
+		searchReq := goldap.NewSearchRequest(ldapServer.BaseDn,
+			goldap.ScopeWholeSubtree, goldap.NeverDerefAliases, 0, 0, false,
+			SearchFilter, []string{}, nil)
+		searchResult, err := conn.Conn.Search(searchReq)
+		if err != nil {
+			return nil, err.Error()
+		}
+
+		if len(searchResult.Entries) == 0 {
+			continue
+		} else if len(searchResult.Entries) > 1 {
+			return nil, "Error: multiple accounts with same uid, please check your ldap server"
+		}
+
+		dn := searchResult.Entries[0].DN
+		if err := conn.Conn.Bind(dn, password); err == nil {
+			ldapLoginSuccess = true
+			break
+		}
+	}
+
+	if !ldapLoginSuccess {
+		return nil, "ldap user name or password incorrect"
+	}
+	return user, ""
+}
+
 func CheckUserPassword(organization string, username string, password string) (*User, string) {
 	user := GetUserByFields(organization, username)
 	if user == nil || user.IsDeleted == true {
@@ -127,6 +173,10 @@ func CheckUserPassword(organization string, username string, password string) (*
 
 	if user.IsForbidden {
 		return nil, "the user is forbidden to sign in, please contact the administrator"
+	}
+	//for ldap users
+	if user.Ldap != "" {
+		return checkLdapUserPassword(user, password)
 	}
 
 	msg := CheckPassword(user, password)

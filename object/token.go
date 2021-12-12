@@ -15,6 +15,7 @@
 package object
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/casbin/casdoor/util"
@@ -44,6 +45,7 @@ type Token struct {
 
 type TokenWrapper struct {
 	AccessToken string `json:"access_token"`
+	IdToken     string `json:"id_token"`
 	TokenType   string `json:"token_type"`
 	ExpiresIn   int    `json:"expires_in"`
 	Scope       string `json:"scope"`
@@ -165,7 +167,7 @@ func CheckOAuthLogin(clientId string, responseType string, redirectUri string, s
 		}
 	}
 	if !validUri {
-		return "redirect_uri doesn't exist in the allowed Redirect URL list", application
+		return fmt.Sprintf("Redirect URI: \"%s\" doesn't exist in the allowed Redirect URI list", redirectUri), application
 	}
 
 	// Mask application for /api/get-app-login
@@ -275,6 +277,7 @@ func GetOAuthToken(grantType string, clientId string, clientSecret string, code 
 
 	tokenWrapper := &TokenWrapper{
 		AccessToken: token.AccessToken,
+		IdToken:     token.AccessToken,
 		TokenType:   token.TokenType,
 		ExpiresIn:   token.ExpiresIn,
 		Scope:       token.Scope,
