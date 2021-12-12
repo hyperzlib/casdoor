@@ -24,6 +24,7 @@ import * as ApplicationBackend from "../backend/ApplicationBackend";
 import {CountDownInput} from "../component/CountDownInput";
 import SelectRegionBox from "../SelectRegionBox";
 import CustomGithubCorner from "../CustomGithubCorner";
+import * as UserBackend from "../backend/UserBackend";
 
 const formItemLayout = {
   labelCol: {
